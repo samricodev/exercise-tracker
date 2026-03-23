@@ -8,7 +8,7 @@ import {
   Body,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import * as user from './user';
+import * as user from './interfaces/user.interface';
 
 @Controller('users')
 export class UsersController {
@@ -42,6 +42,6 @@ export class UsersController {
   @Delete(':id')
   delete(@Param('id') id: string): void {
     const userId = parseInt(id, 10);
-    this.usersService.delete(userId);
+    return this.usersService.delete(userId);
   }
 }
