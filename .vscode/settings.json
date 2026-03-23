@@ -3,6 +3,5 @@
     "*.module.ts": "nest",
     "*.service.ts": "nest",
     "*.controller.ts": "nest",
-    "*.controller.spec.ts": "nest",
   },
 }
