@@ -38,7 +38,10 @@ export class ExercisesService {
   }
 
   create(dto: CreateExerciseDto): Exercise {
-    const exercise: Exercise = dto as Exercise;
+    const exercise: Exercise = {
+      id: this.exercises.length + 1,
+      ...dto,
+    } as Exercise;
     this.exercises.push(exercise);
     return exercise;
   }
