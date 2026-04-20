@@ -1,58 +1,64 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { ExercisesService } from '../exercises/exercises.service';
-import { Workout } from './interfaces/workout.interface';
+import { Workout } from './entities/workout.entity';
+import { WorkoutEntry } from './entities/workout-entry.entity';
 import { CreateWorkoutDto } from './dto/create-workout.dto';
 import { UpdateWorkoutDto } from './dto/update-workout.dto';
 
 @Injectable()
 export class WorkoutsService {
-  private workouts: Workout[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectRepository(Workout)
+    private readonly workoutRepo: Repository<Workout>,
+    @InjectRepository(WorkoutEntry)
+    private readonly entryRepo: Repository<WorkoutEntry>,
+    private readonly exercisesService: ExercisesService,
+  ) {}
 
-  constructor(private readonly exercisesService: ExercisesService) {}
-
-  findAll(): Workout[] {
-    return this.workouts;
+  findAll(): Promise<Workout[]> {
+    return this.workoutRepo.find();
   }
 
-  findByUser(userId: number): Workout[] {
-    return this.workouts.filter((w) => w.userId === userId);
+  findByUser(userId: number): Promise<Workout[]> {
+    return this.workoutRepo.findBy({ userId });
   }
 
-  findOne(id: number): Workout {
-    const workout = this.workouts.find((w) => w.id === id);
+  async findOne(id: number): Promise<Workout> {
+    const workout = await this.workoutRepo.findOneBy({ id });
     if (!workout) throw new NotFoundException(`Workout #${id} not found`);
     return workout;
   }
 
-  create(dto: CreateWorkoutDto): Workout {
-    // Validate all exercise IDs exist — findOne throws 404 if not found
-    dto.entries.forEach((entry) => {
-      this.exercisesService.findOne(entry.exerciseId);
+  async create(dto: CreateWorkoutDto): Promise<Workout> {
+    await Promise.all(dto.entries.map((e) => this.exercisesService.findOne(e.exerciseId)));
+
+    const workout = this.workoutRepo.create({
+      userId: dto.userId,
+      date: dto.date,
+      notes: dto.notes,
+      entries: dto.entries.map((e) => this.entryRepo.create(e)),
     });
 
-    const workout: Workout = { id: this.nextId++, ...dto };
-    this.workouts.push(workout);
-    return workout;
+    return this.workoutRepo.save(workout);
   }
 
-  update(id: number, dto: UpdateWorkoutDto): Workout {
-    const index = this.workouts.findIndex((w) => w.id === id);
-    if (index === -1) throw new NotFoundException(`Workout #${id} not found`);
+  async update(id: number, dto: UpdateWorkoutDto): Promise<Workout> {
+    const workout = await this.findOne(id);
 
     if (dto.entries) {
-      dto.entries.forEach((entry) => {
-        this.exercisesService.findOne(entry.exerciseId);
-      });
+      await Promise.all(dto.entries.map((e) => this.exercisesService.findOne(e.exerciseId)));
+      await this.entryRepo.delete({ workout: { id } });
+      workout.entries = dto.entries.map((e) => this.entryRepo.create(e));
     }
 
-    this.workouts[index] = { ...this.workouts[index], ...dto };
-    return this.workouts[index];
+    Object.assign(workout, { ...dto, entries: workout.entries });
+    return this.workoutRepo.save(workout);
   }
 
-  remove(id: number): void {
-    const index = this.workouts.findIndex((w) => w.id === id);
-    if (index === -1) throw new NotFoundException(`Workout #${id} not found`);
-    this.workouts.splice(index, 1);
+  async remove(id: number): Promise<void> {
+    await this.findOne(id);
+    await this.workoutRepo.delete(id);
   }
 }

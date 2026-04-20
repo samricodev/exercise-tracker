@@ -43,7 +43,7 @@ export class ExercisesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    this.exercisesService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.exercisesService.remove(id);
   }
 }

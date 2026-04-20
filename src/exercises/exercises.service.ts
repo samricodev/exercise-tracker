@@ -1,61 +1,39 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Exercise } from './interfaces/exercise.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Exercise } from './entities/exercise.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 
 @Injectable()
 export class ExercisesService {
-  private exercises: Exercise[] = [
-    {
-      id: 1,
-      name: 'Push-up',
-      category: 'strength',
-      muscleGroups: ['chest', 'triceps', 'shoulders'],
-    },
-    {
-      id: 2,
-      name: 'Running',
-      category: 'cardio',
-      muscleGroups: ['legs', 'core'],
-      description: 'Steady-state aerobic running',
-    },
-    {
-      id: 3,
-      name: 'Yoga - Downward Dog',
-      category: 'flexibility',
-      muscleGroups: ['hamstrings', 'shoulders', 'calves'],
-    },
-  ];
+  constructor(
+    @InjectRepository(Exercise)
+    private readonly exerciseRepo: Repository<Exercise>,
+  ) {}
 
-  findAll(): Exercise[] {
-    return this.exercises;
+  findAll(): Promise<Exercise[]> {
+    return this.exerciseRepo.find();
   }
 
-  findOne(id: number): Exercise {
-    const exercise = this.exercises.find((e) => e.id === id);
+  async findOne(id: number): Promise<Exercise> {
+    const exercise = await this.exerciseRepo.findOneBy({ id });
     if (!exercise) throw new NotFoundException(`Exercise #${id} not found`);
     return exercise;
   }
 
-  create(dto: CreateExerciseDto): Exercise {
-    const exercise: Exercise = {
-      id: this.exercises.length + 1,
-      ...dto,
-    } as Exercise;
-    this.exercises.push(exercise);
-    return exercise;
+  create(dto: CreateExerciseDto): Promise<Exercise> {
+    return this.exerciseRepo.save(this.exerciseRepo.create(dto));
   }
 
-  update(id: number, dto: UpdateExerciseDto): Exercise {
-    const index = this.exercises.findIndex((e) => e.id === id);
-    if (index === -1) throw new NotFoundException(`Exercise #${id} not found`);
-    this.exercises[index] = { ...this.exercises[index], ...dto };
-    return this.exercises[index];
+  async update(id: number, dto: UpdateExerciseDto): Promise<Exercise> {
+    await this.findOne(id);
+    await this.exerciseRepo.update(id, dto);
+    return this.findOne(id);
   }
 
-  remove(id: number): void {
-    const index = this.exercises.findIndex((e) => e.id === id);
-    if (index === -1) throw new NotFoundException(`Exercise #${id} not found`);
-    this.exercises.splice(index, 1);
+  async remove(id: number): Promise<void> {
+    await this.findOne(id);
+    await this.exerciseRepo.delete(id);
   }
 }
