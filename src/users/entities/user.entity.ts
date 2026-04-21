@@ -1,18 +1,18 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export class CreateUserDto {
+@Entity('users')
+export class User {
   constructor(id: number, name: string, phone: string) {
     this.id = id;
     this.name = name;
     this.phone = phone;
   }
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @IsNotEmpty()
-  @IsString()
+  @Column()
   name: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @Column()
   phone: string;
 }

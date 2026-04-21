@@ -7,39 +7,39 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import * as user from './interfaces/user.interface';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll(): user.User[] {
+  findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): user.User | string {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
   }
 
   @Post()
-  create(@Body() newUser: user.User): user.User {
-    return this.usersService.create(newUser);
+  create(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
   }
 
   @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updatedUser: user.User,
-  ): user.User | string {
-    return this.usersService.update(id, { ...updatedUser, id });
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateUserDto) {
+    return this.usersService.update(id, dto);
   }
 
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number): string {
-    return this.usersService.delete(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 }
