@@ -32,7 +32,9 @@ export class WorkoutsService {
   }
 
   async create(dto: CreateWorkoutDto): Promise<Workout> {
-    await Promise.all(dto.entries.map((e) => this.exercisesService.findOne(e.exerciseId)));
+    await Promise.all(
+      dto.entries.map((e) => this.exercisesService.findOne(e.exerciseId)),
+    );
 
     const workout = this.workoutRepo.create({
       userId: dto.userId,
@@ -48,7 +50,9 @@ export class WorkoutsService {
     const workout = await this.findOne(id);
 
     if (dto.entries) {
-      await Promise.all(dto.entries.map((e) => this.exercisesService.findOne(e.exerciseId)));
+      await Promise.all(
+        dto.entries.map((e) => this.exercisesService.findOne(e.exerciseId)),
+      );
       await this.entryRepo.delete({ workout: { id } });
       workout.entries = dto.entries.map((e) => this.entryRepo.create(e));
     }
