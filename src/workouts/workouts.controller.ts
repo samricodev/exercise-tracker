@@ -44,7 +44,7 @@ export class WorkoutsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    this.workoutsService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.workoutsService.remove(id);
   }
 }
