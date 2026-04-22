@@ -1,12 +1,10 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateUserDto {
-  constructor(id: number, name: string, phone: string) {
-    this.id = id;
+  constructor(name: string, phone: string) {
     this.name = name;
     this.phone = phone;
   }
-  id: number;
 
   @IsNotEmpty()
   @IsString()

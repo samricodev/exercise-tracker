@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -15,8 +16,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello Fucking World!"', () => {
-      expect(appController.getHello()).toBe('Hello Fucking World!');
+    it('should return "Hello World!"', () => {
+      expect(appController.getHello()).toBe('Hello World!');
     });
   });
 });
